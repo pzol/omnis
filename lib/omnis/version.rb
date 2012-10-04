@@ -1,0 +1,3 @@
+module Omnis
+  VERSION = "0.0.1"
+end
