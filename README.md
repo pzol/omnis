@@ -71,6 +71,9 @@ class ExtractorlessTransformer
   include Omnis::DataTransformer
   property(:ref) {|src| src["ref_anixe"] }
 end
+```
+
+If you provide a `#to_object(hash)` method in the Transformer definition, it will be used to convert the output Hash into the object of you desire.
 
 ## Using it all together
 TODO

@@ -66,7 +66,8 @@ module Omnis
       end
 
       def transform(source)
-        Hash[self.class.properties.map do |k, v| [k, __extract(v, source)] end]
+        result = Hash[self.class.properties.map do |k, v| [k, __extract(v, source)] end]
+        respond_to?(:to_object) ? to_object(result) : result
       end
     end
   end

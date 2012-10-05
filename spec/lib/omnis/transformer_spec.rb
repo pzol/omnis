@@ -1,4 +1,5 @@
 require 'spec_helper'
+require 'ostruct'
 require 'monadic'
 require 'omnis/nested_hash_extractor'
 require 'omnis/transformer'
@@ -43,5 +44,17 @@ describe Omnis::Transformer do
         property :ref
       end
     }.to raise_error ArgumentError
+  end
+
+  it "uses a #to_object method if provided to convert the resulting Hash into an Object" do
+    class TestTransformerWithToObject
+      include Omnis::Transformer
+      property(:ref) {|src| src["ref_anixe"]}
+      def to_object(hash)
+        OpenStruct.new(hash)
+      end
+    end
+    t = TestTransformerWithToObject.new
+    t.transform(doc).should == OpenStruct.new(ref: "1abc")
   end
 end
