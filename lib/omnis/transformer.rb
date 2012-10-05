@@ -31,8 +31,16 @@ module Omnis
         @properties ||= {}
       end
 
-      def property(name, expr, opts={})
-        xtr = Proc === expr ? expr : @extractor.extractor(expr)
+      # if an expr is provided it will be passed to the configured extractor,
+      # otherwise a block is required
+      def property(name, expr=nil, opts={}, &block)
+        raise ArgumentError if (expr.nil? && block.nil?)
+
+        xtr = case expr
+              when String; @extractor.extractor(expr)
+              when nil   ; block
+              end
+
         Omnis::Transformer::Property.new(name, expr, opts, xtr).tap do |prop|
           properties[prop.name] = prop
         end

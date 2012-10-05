@@ -31,16 +31,17 @@ class BookingQuery
     end
   end
 
-  param    :contract, Matches
-  param    :date_from {|value| parse_date(value) }
-  param    :date_to   {|value| parse_date(value) }
+  param :contract,  Matches
+  param(:date_from) {|value| parse_date(value) }
+  param(:date_to)   {|value| parse_date(value) }
 
   fields   %w[ref_anixe ref_customer status passengers date_status_modified date_from date_to description product contract agency services]
 end
 ```
 
 ## Transformer
-Transforms some data into another form of (flattened) data. Extractors can be used to get values from the data source.
+Transforms some data into another form of (flattened) data. Extractors can be used to get values from the data source.  
+If the first parameter of a property denotes the output field, the second is a string which is passed as argument to the extractor.
 
 Example:
 ```ruby
@@ -51,7 +52,7 @@ class BookingTransformer
   property :ref_anixe,    "ref_anixe"
   property :ref_customer, "ref_customer"
   property :status,       "status"
-  property :passenger,    ->doc { Maybe(doc)['passengers'].map {|v| v.first.values.slice(1..2).join(' ') }.or('Unknown').fetch.to_s }
+  property(:passenger)     {|doc| Maybe(doc)['passengers'].map {|v| v.first.values.slice(1..2).join(' ') }.or('Unknown').fetch.to_s }
   property :date          "date_status_modified", :default => Time.at(0), :format => ->v { v.to_s(:date) }
   property :description,  "description"
   property :product,      "product"
@@ -61,6 +62,15 @@ class BookingTransformer
   property :date_to,      "services.0.date_to",   :default => "n/a", :format => ->v { v.to_s(:date) }
 end
 ```
+This will produce a Hash like `{:ref_anixe => "1abc", :status => "book_confirmed" ... }`
+
+If you provide blocks for all properties, an Extractor is not required
+
+```ruby
+class ExtractorlessTransformer
+  include Omnis::DataTransformer
+  property(:ref) {|src| src["ref_anixe"] }
+end
 
 ## Using it all together
 TODO
