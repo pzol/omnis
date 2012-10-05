@@ -46,6 +46,7 @@ Example:
 ```ruby
 class BookingTransformer
   include Omnis::DataTransformer
+  extractor Omnis::NestedHashExtractor.new
 
   property :ref_anixe,    "ref_anixe"
   property :ref_customer, "ref_customer"
