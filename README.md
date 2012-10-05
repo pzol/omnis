@@ -13,6 +13,24 @@ becomes
 Matches.new(:ref_anixe, "1abc")
 ```
 
+Example:
+```ruby
+class SomeQuery
+  include Omnis::Query
+
+  def self.parse_date(params, name)
+    param = params[name]
+    return nil if param.nil?
+    time = Time.parse(param)
+    Between.new(name, time.getlocal.beginning_of_day..time.getlocal.end_of_day)
+  end
+
+  param :ref_anixe, Matches
+  param :passenger, Equals
+  param(:date, Between) {|params| self.parse_date(params, :date) }
+end
+```
+
 ## MongoQuery
 This covers a standard use case where you have a bunch of params in a Hash, for instance from a web request and you need validation, and transformation of the incoming values.
 
@@ -23,19 +41,18 @@ class BookingQuery
 
   collection Mongo::Connection.new['bms']['bookings']
 
-  def parse_date(value)
-    case result = Time.parse(value) rescue Chronic.parse(value, :guess => false)
-      when Time;          Between.new(m, result.getlocal.beginning_of_day..result.getlocal.end_of_day)
-      when Chronic::Span; Between.new(m, result)
-      else nil
-    end
-  end
+  param :ref_anixe,   Equals
+  param :contract,    Matches
+  param :description, Matches
+  param :status,      Matches
+  param :product,     BeginsWith
+  param :agency,      Equals
 
-  param :contract,  Matches
-  param(:date_from) {|value| parse_date(value) }
-  param(:date_to)   {|value| parse_date(value) }
+  # if this param is in the query, fetch the field "ref_customer"
+  param :ref_customer, Matches, :field => "ref_customer"
 
-  fields   %w[ref_anixe ref_customer status passengers date_status_modified date_from date_to description product contract agency services]
+  # those fields are always fetched
+  fields   %w[ref_anixe contract description status product agency passengers date_status_modified services]
 end
 ```
 
