@@ -8,7 +8,7 @@ Gem::Specification.new do |gem|
   gem.version       = Omnis::VERSION
   gem.authors       = ["Piotr Zolnierek"]
   gem.email         = ["pz@anixe.pl"]
-  gem.description   = %q{Helps a read-only ORM kind-of}
+  gem.description   = %q{Helps with a read-only ORM kind-of, more useful than the description}
   gem.summary       = %q{see above}
   gem.homepage      = "http://github.com/pzol/omnis"
 
@@ -18,6 +18,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
   gem.add_dependency             'mongo', '>=1.7.0'
   gem.add_dependency             'bson_ext', '>=1.7.0'
+  gem.add_dependency             'monadic'
   gem.add_development_dependency 'rspec', '>=2.9.0'
   gem.add_development_dependency 'guard'
   gem.add_development_dependency 'guard-rspec'
@@ -25,4 +26,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'growl'
   gem.add_development_dependency 'activesupport'
   gem.add_development_dependency 'rake'
+  gem.add_development_dependency 'rb-fsevent', '~> 0.9.1'
 end
