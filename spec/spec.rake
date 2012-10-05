@@ -7,8 +7,8 @@ SPEC_SUITES = [
 
   { :id => :acceptance,
     :title => 'acceptance',
-    :files => %w(spec_acceptance/acceptance/**/*_spec.rb),
-    :opts => '-I spec_acceptance' },
+    :files => %w(spec/acceptance/**/*_spec.rb),
+    :opts => '-I spec/acceptance' },
 ]
 
 
