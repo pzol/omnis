@@ -1,5 +1,3 @@
 require "omnis/version"
 
-module Omnis
-  # Your code goes here...
-end
+require 'omnis/nested_hash_extractor'
