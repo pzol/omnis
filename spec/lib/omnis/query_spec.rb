@@ -23,7 +23,7 @@ describe Omnis::Query do
 
     param :ref_anixe, Matches
     param :passenger, Equals
-    param(:date, Between) {|params| self.parse_date(params, :date) }
+    param(:date, Between) {|params| parse_date(params, :date) }
   end
 
   it "allows to fetch a single param" do
