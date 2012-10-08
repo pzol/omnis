@@ -3,8 +3,7 @@ module Omnis
     class NullOperator
       attr_reader :key, :value
       def initialize(key, value)
-        @key = key
-        @value = value
+        @key, @value = key, value
       end
 
       def ==(other)
