@@ -2,10 +2,9 @@ module Omnis
   class NestedHashExtractor
     # returns a lambda which extracts a value from a nested hash
     def extractor(path)
-      case path
-      when String; ->doc { eval("doc#{from_dot_path(path)} rescue Nothing") }
-      else path  # todo
-      end
+      raise ArgumentError("path to extract must be a string") unless String === path
+      expr = "source#{from_dot_path(path)} rescue Nothing"
+      ->source { eval(expr) }
     end
 
     private
@@ -17,7 +16,7 @@ module Omnis
 
     def field(f)
       return '['  << f << ']' if is_i?(f)
-      return '["' << f << '"]'
+      return '.fetch("' << f << '", Nothing)'
     end
 
     # checks if the string is a number

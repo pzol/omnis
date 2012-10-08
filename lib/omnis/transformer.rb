@@ -57,12 +57,18 @@ module Omnis
 
     module InstanceMethods
       def __extract(property, source)
-        value = property.extract(source) || property.default
+        value = property_value(property, source)
         if property.format
           property.format.call(value)
         else
           value
         end
+      end
+
+      def property_value(property, source)
+        value = property.extract(source)
+        return property.default if property.default && (value == Nothing || value.nil?)
+        return value
       end
 
       def transform(source)

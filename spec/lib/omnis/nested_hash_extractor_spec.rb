@@ -17,13 +17,17 @@ describe Omnis::NestedHashExtractor do
     xtr.extractor("agency").call(doc).should be_nil
   end
 
-  it "returns nil if expression don't match" do
-    xtr.extractor("ref_anixe").call({}).should be_nil
+  it "returns Nothing if an expression points to a non-existant key" do
+    xtr.extractor("ref_anixe").call({}).should == Nothing
   end
 
   it "returns Nothing for a nested path, if an exception would be raised" do
     xtr.extractor("a.b.c").call({}).should == Nothing
     xtr.extractor("a.(1]").call({}).should == Nothing
+  end
+
+  it "returns nil if the underlying value of a key is nil" do
+    xtr.extractor("agency").call(doc).should be_nil
   end
 
 end

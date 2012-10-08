@@ -10,7 +10,7 @@ describe Omnis::Transformer do
     extractor Omnis::NestedHashExtractor.new
 
     property :ref,       "ref_anixe"
-    property(:date_from) {|source| extract(Maybe(source), "services.0.date_from").or(Time.at(0)).fetch }
+    property(:date_from) {|source| Maybe(extract(source, "services.0.date_from")).or(Time.at(0)).fetch }
     property :date_to,   "services.0.date_to",   :default => Time.at(0), :format => ->v { v.strftime("%Y-%m-%d") }
     property :agency,    "agency",               :default => "000000"
   end
