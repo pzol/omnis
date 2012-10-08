@@ -22,12 +22,12 @@ describe Omnis::Transformer do
       "services" => [ { "date_from" => "2012-10-10"}]}
   }
 
-  it "should do something" do
+  it "should read values from the doc" do
     t = TestTransformer.new
     t.transform(doc).should == { :ref => "1abc", :date_from => "2012-10-10", :date_to => "1970-01-01", :agency => "000000" }
   end
 
-  it "should support blocks in properties, without an extractor" do
+  it "should support blocks in properties, without a defined extractor" do
     class TestTransformerWithBlock
       include Omnis::Transformer
       property(:ref) {|src| Maybe(src)["ref_anixe"].fetch }
