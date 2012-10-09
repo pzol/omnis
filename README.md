@@ -3,7 +3,7 @@ The goal is to simplify standard and repetetive queries to Mongo and presenting 
 To do this Omnis provides a Query and a Transformer, both can be configured using a DSL.
 
 ## Query
-Converts a params Hash into Operators to be able to easily build queries against databases et al.
+Converts a params Hash into Operators to be able to easily build queries against databases et al. This is a generic way to process incoming parameters.
 
 ```ruby
 { "ref_anixe" => "1abc"}
@@ -31,15 +31,25 @@ class SomeQuery
 end
 ```
 
+If a lambda used for extraction returns `nil`, the parameter will be removed.
+
+Params also support defaults as values or as lambdas which will be executed at the time the extraction of the values happens. This way you can build pre-defined queries and if required only override some values. The difference to normal blocks for extraction is that, the latter is not called if the param is not in the inputs - in this case the default will be used.
+
+```ruby
+  param :date_from, Between, :default => Between.new("services.date_from", tomorrow.beginning_of_day..tomorrow.end_of_day)
+  param :contract,  Matches, :default => "^wotra."
+```
+
 ## MongoQuery
-This covers a standard use case where you have a bunch of params in a Hash, for instance from a web request and you need validation, and transformation of the incoming values.
+This covers a standard use case where you have a bunch of params in a Hash, for instance from a web request and you need validation, and transformation of the incoming values.  
+No actual calls to mongo are done.
 
 Example:
 ```ruby
 class BookingQuery
   include Omnis::MongoQuery
 
-  collection Mongo::Connection.new['bms']['bookings']
+  # collection Mongo::Connection.new['bms']['bookings'] # planned!?
 
   param :ref_anixe,   Equals
   param :contract,    Matches
@@ -54,6 +64,13 @@ class BookingQuery
   # those fields are always fetched
   fields   %w[ref_anixe contract description status product agency passengers date_status_modified services]
 end
+```
+
+Usage:
+```ruby
+query = BookingQuery.new("ref_anixe" => "1abc", "product" => "HOT")
+mongo = query.to_mongo
+Mongo::Connection.new['bms']['bookings'].find(mongo.selector, mongo.opts)
 ```
 
 ## Transformer
@@ -79,6 +96,12 @@ class BookingTransformer
   property :date_to,      "services.0.date_to",   :default => "n/a", :format => ->v { v.to_s(:date) }
 end
 ```
+
+Usage:
+```ruby
+transformer = BookingTransformer.new
+transformer.transform(doc)
+```
 This will produce a Hash like `{:ref_anixe => "1abc", :status => "book_confirmed" ... }`
 
 If you provide blocks for all properties, an Extractor is not required
@@ -92,8 +115,21 @@ end
 
 If you provide a `#to_object(hash)` method in the Transformer definition, it will be used to convert the output Hash into the object of you desire.
 
-## Using it all together
-TODO
+## Putting it all together
+
+```ruby
+query       = BookingQuery.new("ref_anixe" => "1abc", "product" => "HOT").to_mongo
+transformer = BookingTransformer.new.to_proc
+collection  = Mongo::Connection.new['bms']['bookings']
+
+table       = collection.find(query.selector, query.opts.merge(:transformer => transformer))
+
+table = Omnis::MongoTable.new(connection, params, BookingQuery, BookingTransformer)
+
+table.call.each do |row|
+  row.
+end
+```
 
 ## Installation
 
