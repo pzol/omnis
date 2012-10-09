@@ -13,4 +13,11 @@ describe Omnis::Operators do
     another = Omnis::Operators::NullOperator.new(:key, :another)
     (another == this).should be_false
   end
+
+  it 'should carry additional options' do
+    o = Omnis::Operators::NullOperator.new(:key, :value, {:k => 'v'})
+    expect(o.key).to   eq(:key)
+    expect(o.value).to eq(:value)
+    expect(o.opts).to  eq({:k => 'v'})
+  end
 end

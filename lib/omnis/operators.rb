@@ -1,9 +1,9 @@
 module Omnis
   module Operators
     class NullOperator
-      attr_reader :key, :value
-      def initialize(key, value)
-        @key, @value = key, value
+      attr_reader :key, :value, :opts
+      def initialize(key, value, opts={})
+        @key, @value, @opts = key, value, opts
       end
 
       def ==(other)
