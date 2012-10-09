@@ -40,7 +40,7 @@ describe Omnis::Query do
     t = TestBookingParams.new({"date" => "2012-10-02"})
     value = t.fetch(:date).value
     value.begin.should be_eql Time.local(2012, 10, 02, 0, 0, 0)
-    value.end.to_i.should == Time.local(2012, 10, 02, 23, 59, 59).to_i
+    value.end.should == Time.local(2012, 10, 02, 23, 59, 59, 999999.999)
   end
 
   it "returns default values even if not in the params" do
