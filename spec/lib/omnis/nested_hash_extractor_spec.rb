@@ -1,5 +1,4 @@
 require 'spec_helper'
-require 'monadic'
 require 'omnis/nested_hash_extractor'
 
 describe Omnis::NestedHashExtractor do

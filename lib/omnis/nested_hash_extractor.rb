@@ -1,3 +1,5 @@
+require 'monadic'
+
 module Omnis
   class NestedHashExtractor
     # returns a lambda which extracts a value from a nested hash
