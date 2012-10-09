@@ -75,6 +75,12 @@ module Omnis
         result = Hash[self.class.properties.map do |k, v| [k, __extract(v, source)] end]
         respond_to?(:to_object) ? to_object(result) : result
       end
+
+      # provides a Proc to the transform method, for use e.g. with Mongo documents
+      # If you want to cache a transformer for reuse, you can cache just this Proc
+      def to_proc
+        method(:transform).to_proc
+      end
     end
   end
 end

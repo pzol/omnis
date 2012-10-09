@@ -57,4 +57,15 @@ describe Omnis::Transformer do
     t = TestTransformerWithToObject.new
     t.transform(doc).should == OpenStruct.new(ref: "1abc")
   end
+
+  it 'provides a tranformer lambda' do
+    class TestXformer
+      include Omnis::Transformer
+      property(:ref) {|src| src['ref_anixe']}
+    end
+    t = TestXformer.new
+    xformer = t.to_proc
+    xformer.should be_a Proc
+    xformer.({"ref_anixe" => "2two"}).should == {:ref => "2two"}
+  end
 end
