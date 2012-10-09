@@ -59,7 +59,7 @@ module Omnis
         when Equals;      operator.value
         when Matches;     /#{operator.value}/i
         when BeginsWith;  /^#{operator.value}/i
-        when Between;     { :gte => operator.value.begin, :lt => operator.value.end}
+        when Between;     { :'$gte' => operator.value.begin, :'$lt' => operator.value.end}
         end
       end
 

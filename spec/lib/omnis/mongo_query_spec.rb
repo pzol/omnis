@@ -36,7 +36,7 @@ describe Omnis::MongoQuery do
     t.to_mongo.selector.should == { :ref_anixe => "1abc",
                                  :contract  => /test/i,
                                  :product   => /^HOT/i,
-                                 :date      => { :gte => Time.local(2012, 10, 12, 0, 0, 0), :lt => Time.local(2012, 10, 12, 23, 59, 59, 999999.999)}
+                                 :date      => { :'$gte' => Time.local(2012, 10, 12, 0, 0, 0), :'$lt' => Time.local(2012, 10, 12, 23, 59, 59, 999999.999)}
                                }
 
     fields = %w[ref_anixe contract description status product agency passengers date_status_modified services]
@@ -100,7 +100,7 @@ describe Omnis::MongoQuery do
       m.selector[:contract].should == /^wotra./i
       m.selector[:product].should  == "PACKAGE"
       m.selector[:status].should   == "book_confirmed"
-      m.selector['services.date_from'].should == {:gte => Time.new(2012, 10, 12), :lt => Time.local(2012, 10, 12, 23, 59, 59, 999999.999)}
+      m.selector['services.date_from'].should == {:'$gte' => Time.new(2012, 10, 12), :'$lt' => Time.local(2012, 10, 12, 23, 59, 59, 999999.999)}
       m.opts[:limit].should  == 9999
       m.opts[:skip].should   == 0
       m.opts[:fields].should == ["ref_anixe", "ref_customer", "status", "passengers", "date_status_modified", "description", "contract", "agency", "services"]
