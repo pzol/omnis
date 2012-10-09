@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash'
+
 module Omnis
   module Query
 
@@ -15,10 +17,17 @@ module Omnis
         @operator == other.operator
       end
 
+      # extracts the value for a param, using the extractor lamba or the default value
       def extract(params)
-        value = @extractor.(params)
+        value = @extractor.(params) || default
         return value if value.is_a? Omnis::Operators::NullOperator
-        return @operator.new(@name, value) unless value.nil?
+        return @operator.new(@name, value, @opts) unless value.nil?
+      end
+
+      def default
+        expr = @opts[:default]
+        return expr.call if expr.is_a? Proc
+        return expr
       end
     end
 
@@ -47,11 +56,11 @@ module Omnis
       end
 
       def fetch(name)
-        self.class.instance_variable_get(:@params).fetch(name).extract(@input_params)
+        self.class.params.fetch(name).extract(@input_params)
       end
 
-      def params
-        self.class.instance_variable_get(:@params).map { |k,v| v.extract(@input_params) }.compact
+      def extract
+        self.class.params.map { |k,v| v.extract(@input_params) }.compact
       end
     end
   end

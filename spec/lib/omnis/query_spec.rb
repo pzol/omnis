@@ -31,9 +31,9 @@ describe Omnis::Query do
     t.fetch(:ref_anixe).should == Omnis::Operators::Matches.new(:ref_anixe, "1abc")
   end
 
-  it "allows to fetch all at once" do
+  it "allows to extract all at once" do
     t = TestBookingParams.new({"ref_anixe" => "1abc"})
-    t.params.should == [Omnis::Operators::Matches.new(:ref_anixe, "1abc")]
+    t.extract.should == [Omnis::Operators::Matches.new(:ref_anixe, "1abc")]
   end
 
   it "allows using blocks for extracing params" do
@@ -41,5 +41,25 @@ describe Omnis::Query do
     value = t.fetch(:date).value
     value.begin.should be_eql Time.local(2012, 10, 02, 0, 0, 0)
     value.end.to_i.should == Time.local(2012, 10, 02, 23, 59, 59).to_i
+  end
+
+  it "returns default values even if not in the params" do
+    class TestDefaultParams
+      include Omnis::Query
+      param :contract,  Matches, :default => "test"
+    end
+
+    t = TestDefaultParams.new({})
+    t.fetch(:contract).value.should == "test"
+  end
+
+  it "should accept a lambda as default" do
+    class TestDefaultsWithLambdaParams
+      include Omnis::Query
+      param :contract, Equals, :default => -> { :angry_nerds }
+    end
+
+    t = TestDefaultsWithLambdaParams.new({})
+    t.fetch(:contract).value.should == :angry_nerds
   end
 end
