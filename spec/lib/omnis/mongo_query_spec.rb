@@ -1,87 +1,29 @@
 require 'spec_helper'
 require 'omnis/operators'
 require 'omnis/query'
-require 'active_support/core_ext/hash'
-
-module Omnis
-  module MongoQuery
-    include Omnis::Query
-    def self.included(base)
-      base.class_eval do
-        include InstanceMethods
-        extend ClassMethods
-      end
-    end
-
-    module ClassMethods
-      include Omnis::Query::ClassMethods
-
-      attr_reader :page_param_name, :items_per_page
-      def field_list
-        @fields ||= []
-      end
-      def fields(list)
-        field_list.concat(list)
-      end
-
-      def page(page_param_name, opts={})
-        @page_param_name = page_param_name
-        @items_per_page  = opts[:items_per_page] || 10
-      end
-    end
-
-    module InstanceMethods
-      include Omnis::Operators
-      def page
-        @input_params[page_param_name].to_i
-      end
-
-      def page_param_name
-        self.class.page_param_name || :page
-      end
-
-      def items_per_page
-        self.class.items_per_page || 20
-      end
-
-      def mongo_selector
-        Hash[params.map { |operator| [operator.key, mongo_operator(operator)] }]
-      end
-
-      def mongo_operator(operator)
-        case operator
-        when Equals;      operator.value
-        when Matches;     /#{operator.value}/i
-        when BeginsWith;  /^#{operator.value}/i
-        end
-      end
-
-      def mongo_opts
-        { :limit => items_per_page, :skip => skip, :fields => self.class.field_list }
-      end
-
-      def skip
-        (page - 1) * items_per_page
-      end
-    end
-  end
-end
+require 'omnis/mongo_query'
+require 'active_support/core_ext/date/calculations'
+require 'active_support/core_ext/time/calculations'
 
 describe Omnis::MongoQuery do
   class TestIntegrationQuery
     include Omnis::MongoQuery
 
     # collection Mongo::Connection.new['bms']['bookings']
+    def self.parse_date(params, name)
+      param = params[name]
+      return nil if param.nil?
+      time = Time.parse(param)
+      Between.new(name, time.beginning_of_day..time.end_of_day)
+    end
 
     param :ref_anixe,   Equals
+    param(:date, Between) {|source| parse_date(source, :date)}
     param :contract,    Matches
     param :description, Matches
     param :status,      Matches
     param :product,     BeginsWith
     param :agency,      Equals
-
-    # if this param is in the query, fetch the field "ref_customer"
-    param :ref_customer, Matches, :field => "ref_customer"
 
     page  :page, :items_per_page => 20
 
@@ -89,17 +31,79 @@ describe Omnis::MongoQuery do
     fields   %w[ref_anixe contract description status product agency passengers date_status_modified services]
   end
 
-  it "works alltogether" do
-    t = TestIntegrationQuery.new("ref_anixe" => "1abc", "contract" => "test", "product" => "HOT", "page" => "2")
-    p t.params
-    t.mongo_selector.should == { :ref_anixe => "1abc",
+  it "works altogether" do
+    t = TestIntegrationQuery.new("ref_anixe" => "1abc", "contract" => "test", "product" => "HOT", "page" => "2", "date" => "2012-10-12")
+    t.to_mongo.selector.should == { :ref_anixe => "1abc",
                                  :contract  => /test/i,
-                                 :product   => /^HOT/i }
+                                 :product   => /^HOT/i,
+                                 :date      => { :gte => Time.local(2012, 10, 12, 0, 0, 0), :lt => Time.local(2012, 10, 12, 23, 59, 59, 999999.999)}
+                               }
 
     fields = %w[ref_anixe contract description status product agency passengers date_status_modified services]
-    t.mongo_opts.should == { :limit => 20, :skip => 20, :fields => fields}
+    t.to_mongo.opts.should == { :limit => 20, :skip => 20, :fields => fields}
   end
 
-  it "page default :page and 20 items per page" do
+  context 'fields' do
+    class TestFieldsQuery
+      include Omnis::MongoQuery
+
+      fields %w[ref_anixe status]
+      # if this param is in the query, fetch the field "ref_customer"
+      param :ref_customer, Matches, :field => "ref_customer"
+    end
+
+    it 'extra field not requested when param not present' do
+      t = TestFieldsQuery.new({})
+      t.to_mongo.opts.should == { :limit => 20, :skip => 0, :fields => ['ref_anixe', 'status']}
+    end
+
+    it 'extra field is requested when param is in request' do
+      t = TestFieldsQuery.new({"ref_customer" => "123"})
+      t.to_mongo.opts.should == { :limit => 20, :skip => 0, :fields => ['ref_anixe', 'status', 'ref_customer']}
+    end
+  end
+
+  context 'paging' do
+    class TestPageDefaultQuery
+      include Omnis::MongoQuery
+    end
+
+    it "page default no page number given" do
+      t = TestPageDefaultQuery.new({})
+      t.to_mongo.opts.should == { :limit => 20, :skip => 0, :fields => []}
+    end
+    it "page defaults and page given" do
+      t = TestPageDefaultQuery.new({"page" => 2})
+      t.to_mongo.opts.should == { :limit => 20, :skip => 20, :fields => []}
+    end
+  end
+
+  context 'practical use case with predefined params' do
+    class TestHotelsWithDepartureTomorrowQuery
+      include Omnis::MongoQuery
+      def self.tomorrow
+        Time.new(2012, 10, 12, 22, 54, 38)
+      end
+
+      param :date_from, Between, :default => Between.new("services.date_from", tomorrow.beginning_of_day..tomorrow.end_of_day)
+      param :contract,  Matches, :default => "^wotra."
+      param :product,   Equals,  :default => "PACKAGE"
+      param :status,    Equals,  :default => "book_confirmed"
+
+      page :page, :items_per_page => 9999
+      fields %w[ref_anixe ref_customer status passengers date_status_modified description contract agency services]
+    end
+
+    it "should fill params with default" do
+      t = TestHotelsWithDepartureTomorrowQuery.new({})
+      m = p t.to_mongo
+      m.selector[:contract].should == /^wotra./i
+      m.selector[:product].should  == "PACKAGE"
+      m.selector[:status].should   == "book_confirmed"
+      m.selector['services.date_from'].should == {:gte => Time.new(2012, 10, 12), :lt => Time.local(2012, 10, 12, 23, 59, 59, 999999.999)}
+      m.opts[:limit].should  == 9999
+      m.opts[:skip].should   == 0
+      m.opts[:fields].should == ["ref_anixe", "ref_customer", "status", "passengers", "date_status_modified", "description", "contract", "agency", "services"]
+    end
   end
 end
