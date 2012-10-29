@@ -32,5 +32,8 @@ module Omnis
 
     class BeginsWith < NullOperator
     end
+
+    class Or < NullOperator
+    end
   end
 end
