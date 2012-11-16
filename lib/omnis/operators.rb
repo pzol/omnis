@@ -18,6 +18,8 @@ module Omnis
       end
     end
 
+    Any = NullOperator
+
     class Matches < NullOperator
     end
 
