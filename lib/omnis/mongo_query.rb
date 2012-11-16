@@ -70,7 +70,7 @@ module Omnis
       def mongo_opts(extracted_params)
         params_with_extra_fields = extracted_params.collect(&:opts).select {|e| e.has_key? :field}
         extra_fields = params_with_extra_fields.map {|e| e[:field]}
-        fields = self.class.field_list.concat(extra_fields)
+        fields = self.class.field_list + extra_fields
         { :limit => items_per_page, :skip => skip, :fields => fields }
       end
     end
