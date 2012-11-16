@@ -58,7 +58,6 @@ describe Omnis::Transformer do
     t.transform(doc).should == OpenStruct.new(ref: "1abc")
   end
 
-  it 'provides a tranformer lambda' do
   it 'provides a transformer lambda' do
     class TestXformer
       include Omnis::Transformer
