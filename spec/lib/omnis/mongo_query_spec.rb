@@ -96,7 +96,7 @@ describe Omnis::MongoQuery do
 
     it "should fill params with default" do
       t = TestHotelsWithDepartureTomorrowQuery.new({})
-      m = p t.to_mongo
+      m = t.to_mongo
       m.selector[:contract].should == /^wotra./i
       m.selector[:product].should  == "PACKAGE"
       m.selector[:status].should   == "book_confirmed"

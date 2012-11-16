@@ -59,6 +59,7 @@ describe Omnis::Transformer do
   end
 
   it 'provides a tranformer lambda' do
+  it 'provides a transformer lambda' do
     class TestXformer
       include Omnis::Transformer
       property(:ref) {|src| src['ref_anixe']}

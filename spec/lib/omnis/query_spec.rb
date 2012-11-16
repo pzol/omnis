@@ -62,4 +62,5 @@ describe Omnis::Query do
     t = TestDefaultsWithLambdaParams.new({})
     t.fetch(:contract).value.should == :angry_nerds
   end
+
 end
