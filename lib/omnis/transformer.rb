@@ -31,14 +31,15 @@ module Omnis
         @properties ||= {}
       end
 
-      # if an expr is provided it will be passed to the configured extractor,
-      # otherwise a block is required
+      # If an expr is provided it will be passed to the configured extractor,
+      # otherwise a block should be given. As last resort, it embeds a lambda to
+      # look for a class method with the name of the param (at runtime)
       def property(name, expr=nil, opts={}, &block)
-        raise ArgumentError if (expr.nil? && block.nil?)
-
-        xtr = case expr
-              when String; @extractor.extractor(expr)
-              when nil   ; block
+        xtr = case
+              when String === expr    ; @extractor.extractor(expr)
+              when block_given?       ; block
+              else
+                ->(source) { self.send(name, source) }
               end
 
         Omnis::Transformer::Property.new(name, expr, opts, xtr).tap do |prop|

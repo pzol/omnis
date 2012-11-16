@@ -37,15 +37,6 @@ describe Omnis::Transformer do
     t.transform(doc).should == { :ref => "1abc" }
   end
 
-  it "should raise an ArgumentError if no block and no expression provided" do
-    expect {
-      class TestTransformerInvalid
-        include Omnis::Transformer
-        property :ref
-      end
-    }.to raise_error ArgumentError
-  end
-
   it "uses a #to_object method if provided to convert the resulting Hash into an Object" do
     class TestTransformerWithToObject
       include Omnis::Transformer
@@ -67,5 +58,19 @@ describe Omnis::Transformer do
     xformer = t.to_proc
     xformer.should be_a Proc
     xformer.({"ref_anixe" => "2two"}).should == {:ref => "2two"}
+  end
+
+  it 'works with built in (class) methods' do
+    class TestBuiltInXformer
+      include Omnis::Transformer
+      property :ref
+
+      def self.ref(source)
+        "ref_value"
+      end
+    end
+
+    xformer = TestBuiltInXformer.new.to_proc
+    xformer.({}).should == {:ref => 'ref_value'}
   end
 end
