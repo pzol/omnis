@@ -1,11 +1,9 @@
-require 'monadic'
-
 module Omnis
   class NestedHashExtractor
     # returns a lambda which extracts a value from a nested hash
     def extractor(path)
       raise ArgumentError("path to extract must be a string") unless String === path
-      expr = "source#{from_dot_path(path)} rescue Nothing"
+      expr = "source#{from_dot_path(path)} rescue nil"
       ->source { eval(expr) }
     end
 
@@ -18,7 +16,7 @@ module Omnis
 
     def field(f)
       return '['  << f << ']' if is_i?(f)
-      return '.fetch("' << f << '", Nothing)'
+      return '.fetch("' << f << '", nil)'
     end
 
     # checks if the string is a number

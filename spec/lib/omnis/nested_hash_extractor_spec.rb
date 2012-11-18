@@ -16,13 +16,13 @@ describe Omnis::NestedHashExtractor do
     xtr.extractor("agency").call(doc).should be_nil
   end
 
-  it "returns Nothing if an expression points to a non-existant key" do
-    xtr.extractor("ref_anixe").call({}).should == Nothing
+  it "returns nil if an expression points to a non-existant key" do
+    xtr.extractor("ref_anixe").call({}).should == nil
   end
 
-  it "returns Nothing for a nested path, if an exception would be raised" do
-    xtr.extractor("a.b.c").call({}).should == Nothing
-    xtr.extractor("a.(1]").call({}).should == Nothing
+  it "returns nil for a nested path, if an exception would be raised" do
+    xtr.extractor("a.b.c").call({}).should == nil
+    xtr.extractor("a.(1]").call({}).should == nil
   end
 
   it "returns nil if the underlying value of a key is nil" do
