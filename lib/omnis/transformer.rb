@@ -47,6 +47,14 @@ module Omnis
         end
       end
 
+      def to_value(&block)
+        @to_value = block
+      end
+
+      def apply_to_value(value)
+        @to_value ? @to_value.(value) : value
+      end
+
       def extractor(obj)
           @extractor = obj
       end
@@ -69,7 +77,7 @@ module Omnis
       def property_value(property, source)
         value = property.extract(source)
         return property.default if property.default && (value == Nothing || value.nil?)
-        return value
+        return self.class.apply_to_value(value)
       end
 
       def transform(source)

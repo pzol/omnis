@@ -94,6 +94,14 @@ class BookingTransformer
   property :agency,       "agency"
   property :date_from,    "services.0.date_from", :default => "n/a", :format => ->v { v.to_s(:date) }
   property :date_to,      "services.0.date_to",   :default => "n/a", :format => ->v { v.to_s(:date) }
+
+  property :ref            # if no extra params are provided it will call self.ref at runtime
+
+  to_value {|i| i.upcase } # apply this lambda to all extraced values
+
+  def self.ref(src)
+    extract(src, 'ref')
+  end
 end
 ```
 

@@ -73,4 +73,15 @@ describe Omnis::Transformer do
     xformer = TestBuiltInXformer.new.to_proc
     xformer.({}).should == {:ref => 'ref_value'}
   end
+
+  it 'use to_value if provided' do
+    class TestToValueTransformer
+      include Omnis::Transformer
+      property(:ref) { 'abc' }
+      to_value {|i| i.upcase }
+    end
+
+    xformer = TestToValueTransformer.new.to_proc
+    xformer.({}).should == { :ref => 'ABC' }
+  end
 end
