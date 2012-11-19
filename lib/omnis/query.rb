@@ -4,7 +4,7 @@ module Omnis
   module Query
 
     class Param
-      attr_reader :name, :operator
+      attr_reader :name, :operator, :opts
       def initialize(name, operator, opts={}, &extractor)
         # raise ArgumentError("operator must be a descendant of Omnis::Operators::NullOperator") unless operator.is_a? Omnis::Operators::NullOperator
         extractor ||= ->params { params[name] }
@@ -19,7 +19,8 @@ module Omnis
 
       # extracts the value for a param, using the extractor lamba or the default value
       def extract(params)
-        value = @extractor.(params) || default
+        value = @extractor.(params) if params.keys.include? name    # only run extractor if the param was in the request (params)
+        value ||= default                                           # if there is a default, apply it
         return value if value.is_a? Omnis::Operators::NullOperator
         return @operator.new(@name, value, @opts) unless value.nil?
       end
