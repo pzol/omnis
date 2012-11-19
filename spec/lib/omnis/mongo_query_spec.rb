@@ -55,19 +55,19 @@ describe Omnis::MongoQuery do
 
     it 'extra field not requested when param not present' do
       m = TestFieldsQuery.new({}).to_mongo
-      p m.selector.should == {}
+      m.selector.should == {}
       m.opts.should == { :limit => 20, :skip => 0, :fields => ['ref_anixe', 'status']}
     end
 
     it 'extra field is requested when param is in request' do
       m = TestFieldsQuery.new({"ref_customer" => "123"}).to_mongo
-      p m.selector.should == {:ref_customer => /123/i}
+      m.selector.should == {:ref_customer => /123/i}
       m.opts.should == { :limit => 20, :skip => 0, :fields => ['ref_anixe', 'status', 'ref_customer']}
     end
 
     it 'works with lambdas, but the lambda must provide the opts!' do
       m = TestFieldsQuery.new({"date_booked" => "1NOV"}).to_mongo
-      p m.selector
+      m.selector
       m.opts.should == { :limit => 20, :skip => 0, :fields => ['ref_anixe', 'status', 'date_booked']}
     end
   end
