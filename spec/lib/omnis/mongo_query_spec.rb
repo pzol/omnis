@@ -77,6 +77,11 @@ describe Omnis::MongoQuery do
       include Omnis::MongoQuery
     end
 
+    it "page 0 is treated like page 1" do
+      t = TestPageDefaultQuery.new({'page' => 0})
+      t.to_mongo.opts.should == { :limit => 20, :skip => 0, :fields => []}
+    end
+
     it "page default no page number given" do
       t = TestPageDefaultQuery.new({})
       t.to_mongo.opts.should == { :limit => 20, :skip => 0, :fields => []}

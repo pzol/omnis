@@ -39,7 +39,9 @@ module Omnis
       private
       def page
         return 0 unless @input_params.has_key? page_param_name
-        return @input_params[page_param_name].to_i - 1
+        page_num = @input_params[page_param_name].to_i - 1
+        return 0 if page_num < 0
+        return page_num
       end
 
       def skip
