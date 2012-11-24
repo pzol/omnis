@@ -65,23 +65,15 @@ module Omnis
     end
 
     module InstanceMethods
-      def __extract(property, source)
-        value = property_value(property, source)
-        if property.format
-          property.format.call(value)
-        else
-          value
-        end
-      end
-
       def property_value(property, source)
-        value = property.extract(source)
-        return property.default if property.default && (value == Nothing || value.nil?)
-        return self.class.apply_to_value(value)
+        raw_value = property.extract(source)
+        raw_value = property.default if property.default && (raw_value == Nothing || raw_value.nil?)
+        applied_value = self.class.apply_to_value(raw_value)
+        property.format ? property.format.call(applied_value) : applied_value
       end
 
       def transform(source)
-        result = Hash[self.class.properties.map do |k, v| [k, __extract(v, source)] end]
+        result = Hash[self.class.properties.map do |k, v| [k, property_value(v, source)] end]
         respond_to?(:to_object) ? to_object(result) : result
       end
 

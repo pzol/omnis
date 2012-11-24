@@ -74,14 +74,28 @@ describe Omnis::Transformer do
     xformer.({}).should == {:ref => 'ref_value'}
   end
 
-  it 'use to_value if provided' do
-    class TestToValueTransformer
-      include Omnis::Transformer
-      property(:ref) { 'abc' }
-      to_value {|i| i.upcase }
+  context 'to_value' do
+    it 'use to_value if provided' do
+      class TestToValueTransformer
+        include Omnis::Transformer
+        property(:ref) { 'abc' }
+        to_value {|i| i.upcase }
+      end
+      xformer = TestToValueTransformer.new.to_proc
+      xformer.({}).should == { :ref => 'ABC' }
     end
 
-    xformer = TestToValueTransformer.new.to_proc
-    xformer.({}).should == { :ref => 'ABC' }
+    it 'format is applied after to_value' do
+      class TestToValueFormatTransformer
+        include Omnis::Transformer
+        property(:date, nil, :format => ->v { v.strftime('%Y-%m-%d') })
+
+        def self.date(a); Maybe(a); end
+        to_value {|i| i.fetch(Time.at(0)) }
+      end
+      xformer = TestToValueFormatTransformer.new.to_proc
+      xformer.(Time.local(2012, 11, 24, 21, 34)).should == { :date => "2012-11-24"}
+      xformer.(nil).should == { :date => "1970-01-01"}
+    end
   end
 end
