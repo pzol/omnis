@@ -74,10 +74,95 @@ Mongo::Connection.new['bms']['bookings'].find(mongo.selector, mongo.opts)
 ```
 
 ## Transformer
-Transforms some data into another form of (flattened) data. Extractors can be used to get values from the data source.  
+Transforms some data into another form of (flattened) data. Extractors can be used to get values from the data source.
 If the first parameter of a property denotes the output field, the second is a string which is passed as argument to the extractor.
 
-Example:
+There are different ways of getting values from a _source_ document  to a _result_ document (or object), described below:
+
+### Extractors
+The most basic and simple approach is to use an extractor, one default extractor can be configured in the body of the class.
+You can build your own extractor if you want, have a look at the built-in.
+
+The `NestedHashExtractor` extracts data from a nested Hash document by providing a xpath like expression, best shown in an example:
+
+```ruby
+hash = {
+        'ref_anixe' => '1234',
+        'service': [
+          { 'name': 'Hotel Wroclaw'}
+        ]
+       }
+
+xtr           = Omnis::NestedHashExtractor.new
+x_ref_anixe   = xtr.extractor('ref_anixe')
+ref_anixe     = x_ref_anixe.(hash)              # 1234
+
+x_hotel_name  = xtr.extractor('service.0.name')
+hotel_name    = x_hotel_name.(hash)             # Hotel Wroclaw
+```
+
+The `MonadicHashExtractor` uses a `Maybe` monad from the [Monadic gem](https://github.com/pzol/monadic#maybe) to safely get values from the _source_.
+
+The good thing about this is the easy of use in a Transformer
+
+```ruby
+class BookingTransformer
+  include Omnis::DataTransformer
+  extractor Omnis::NestedHashExtractor.new
+
+  property :ref_anixe,    "ref_anixe"
+  property :hotel_name,   "services.0.name"
+end
+
+transformer = BookingTransformer.new
+result      = transformer.transform(hash)    # {:ref_anixe => '1234', :hotel_name => 'Hotel Wroclaw'}
+```
+Easy?
+
+### Extraction with blocks
+
+Instead of, or in addition to Extractors you can use blocks for the extraction
+
+```ruby
+class BookingTransformer
+  include Omnis::DataTransformer
+
+  property(:ref_anixe)  {|src| src['ref_anixe']}
+  property(:hotel_name) {|src| src['services'][0]['name']}
+end
+
+# The transformation part remains the same.
+transformer = BookingTransformer.new
+result      = transformer.transform(hash)    # {:ref_anixe => '1234', :hotel_name => 'Hotel Wroclaw'}
+```
+This is for some scenarios when you need data validation or additional transformation.
+
+### Extraction Class Functions
+The third way to achieve the same is providing a class function. If no expression (or nil) is defined as the second argument to a property and no block hash been provided, the `DataTransformer` will look for a class method to fetch the data.
+
+```ruby
+class BookingTransformer
+  include Omnis::DataTransformer
+  extractor Omnis::NestedHashExtractor.new
+
+  property :ref_anixe
+  property :hotel_name
+
+  def self.ref_anixe(src)
+    src['ref_anixe']
+  end
+
+  def self.hotel_name(src)
+    extract(src, 'services.0.name').upcase     # use the defined Extractor to get the value and modify it
+  end
+end
+
+# The transformation part remains the same, again.
+transformer = BookingTransformer.new
+result      = transformer.transform(hash)    # {:ref_anixe => '1234', :hotel_name => 'Hotel Wroclaw'}
+```
+
+### Example
 ```ruby
 class BookingTransformer
   include Omnis::DataTransformer
@@ -105,7 +190,8 @@ class BookingTransformer
 end
 ```
 
-Usage:
+### Usage
+The most basic usage is to provide a document to the transform method
 ```ruby
 transformer = BookingTransformer.new
 transformer.transform(doc)
@@ -123,7 +209,16 @@ end
 
 If you provide a `#to_object(hash)` method in the Transformer definition, it will be used to convert the output Hash into the object of you desire.
 
+The way I use it most is to get a proc and pass it directly to the `#find` method of the ruby driver:
+
+```ruby
+transformer = BookingTransformer.new.to_proc
+connection  = Mongo::Connection.new
+connection.db('some_db').collection('some_collection').find({}, :transformer => transformer)
+```
+
 ## Putting it all together
+The really good stuff is using the query and the transformer together.
 
 ```ruby
 query       = BookingQuery.new("ref_anixe" => "1abc", "product" => "HOT").to_mongo
@@ -131,12 +226,6 @@ transformer = BookingTransformer.new.to_proc
 collection  = Mongo::Connection.new['bms']['bookings']
 
 table       = collection.find(query.selector, query.opts.merge(:transformer => transformer))
-
-table = Omnis::MongoTable.new(connection, params, BookingQuery, BookingTransformer)
-
-table.call.each do |row|
-  row.
-end
 ```
 
 ## Installation
