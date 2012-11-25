@@ -63,6 +63,11 @@ module Omnis
       def extract
         self.class.params.map { |k,v| v.extract(@input_params) }.compact
       end
+
+      # a list of keys that have been requested
+      def keys
+        extract.map(&:key)
+      end
     end
   end
 end
