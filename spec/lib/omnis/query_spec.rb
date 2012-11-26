@@ -31,10 +31,11 @@ describe Omnis::Query do
     t.fetch(:ref_anixe).should == Omnis::Operators::Matches.new(:ref_anixe, "1abc")
   end
 
-  it "returns a list of keys that are requested" do
+  it "extracted operators contain the parameter name in the options" do
     t = TestBookingParams.new({"ref_anixe" => "1abc"})
-    t.keys.should == [:ref_anixe]
+    t.extract.map { |e| e.opts[:param_name] }.should == [:ref_anixe]
   end
+
   it "allows to extract all at once" do
     t = TestBookingParams.new({"ref_anixe" => "1abc"})
     t.extract.should == [Omnis::Operators::Matches.new(:ref_anixe, "1abc")]

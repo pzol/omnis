@@ -20,15 +20,20 @@ module Omnis
       # extracts the value for a param, using the extractor lamba or the default value
       def extract(params)
         value = @extractor.(params) if params.keys.include? name    # only run extractor if the param was in the request (params)
-        value ||= default                                           # if there is a default, apply it
-        return value if value.is_a? Omnis::Operators::NullOperator
+        value ||= default_value                                     # if there is a default, apply it
+        return value if extracted_result_is_an_operator? value
         return @operator.new(@name, value, @opts) unless value.nil?
       end
 
-      def default
+      def default_value
         expr = @opts[:default]
         return expr.call if expr.is_a? Proc
         return expr
+      end
+
+      private
+      def extracted_result_is_an_operator?(value)
+        value.is_a? Omnis::Operators::NullOperator
       end
     end
 
@@ -60,13 +65,13 @@ module Omnis
         self.class.params.fetch(name).extract(@input_params)
       end
 
+      # extracts operators from params
       def extract
-        self.class.params.map { |k,v| v.extract(@input_params) }.compact
-      end
-
-      # a list of keys that have been requested
-      def keys
-        extract.map(&:key)
+        self.class.params.map do |k,v|
+          v.extract(@input_params).tap do |operator|
+            operator.opts[:param_name] = k unless operator.nil?
+          end
+        end.compact
       end
     end
   end
