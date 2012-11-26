@@ -40,7 +40,7 @@ describe Omnis::MongoQuery do
                           }
 
     fields = %w[ref_anixe contract description status product agency passengers date_status_modified services]
-    m.opts.should == { :limit => 20, :skip => 20, :fields => fields}
+    m.opts.should == { :limit => 20, :skip => 40, :fields => fields}
     m.param_names.should == [:ref_anixe, :date, :contract, :product]
   end
 
@@ -89,7 +89,7 @@ describe Omnis::MongoQuery do
     end
     it "page defaults and page given" do
       t = TestPageDefaultQuery.new({"page" => 2})
-      t.to_mongo.opts.should == { :limit => 20, :skip => 20, :fields => []}
+      t.to_mongo.opts.should == { :limit => 20, :skip => 40, :fields => []}
     end
   end
 
