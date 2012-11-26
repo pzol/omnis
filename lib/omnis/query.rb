@@ -66,6 +66,7 @@ module Omnis
       end
 
       # extracts operators from params
+      # add the name of the param to each extracted operators
       def extract
         self.class.params.map do |k,v|
           v.extract(@input_params).tap do |operator|
