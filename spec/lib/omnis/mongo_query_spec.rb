@@ -32,15 +32,16 @@ describe Omnis::MongoQuery do
   end
 
   it "works altogether" do
-    t = TestIntegrationQuery.new("ref_anixe" => "1abc", "contract" => "test", "product" => "HOT", "page" => "2", "date" => "2012-10-12")
-    t.to_mongo.selector.should == { :ref_anixe => "1abc",
-                                 :contract  => /test/i,
-                                 :product   => /^HOT/i,
-                                 :date      => { :'$gte' => Time.local(2012, 10, 12, 0, 0, 0), :'$lt' => Time.local(2012, 10, 12, 23, 59, 59, 999999.999)}
-                               }
+    m = TestIntegrationQuery.new("ref_anixe" => "1abc", "contract" => "test", "product" => "HOT", "page" => "2", "date" => "2012-10-12").to_mongo
+    m.selector.should == { :ref_anixe => "1abc",
+                           :contract  => /test/i,
+                            :product   => /^HOT/i,
+                            :date      => { :'$gte' => Time.local(2012, 10, 12, 0, 0, 0), :'$lt' => Time.local(2012, 10, 12, 23, 59, 59, 999999.999)}
+                          }
 
     fields = %w[ref_anixe contract description status product agency passengers date_status_modified services]
-    t.to_mongo.opts.should == { :limit => 20, :skip => 20, :fields => fields}
+    m.opts.should == { :limit => 20, :skip => 20, :fields => fields}
+    m.param_names.should == [:ref_anixe, :date, :contract, :product]
   end
 
   context 'fields' do

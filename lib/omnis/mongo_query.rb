@@ -30,10 +30,13 @@ module Omnis
     module InstanceMethods
       include Omnis::Operators
 
+      attr_reader :extracted_operators
+
       def to_mongo
-        extracted_params = extract
-        OpenStruct.new({ :selector => mongo_selector(extracted_params),
-                         :opts     => mongo_opts(extracted_params)})
+        extracted_operators = extract
+        OpenStruct.new({ :selector    => mongo_selector(extracted_operators),
+                         :opts        => mongo_opts(extracted_operators),
+                         :param_names => extracted_param_names(extracted_operators)})
       end
 
       private
@@ -65,15 +68,19 @@ module Omnis
         end
       end
 
-      def mongo_selector(extracted_params)
-        Hash[extracted_params.map { |operator| [operator.key, mongo_operator(operator)] }]
+      def mongo_selector(extracted_operators)
+        Hash[extracted_operators.map { |operator| [operator.key, mongo_operator(operator)] }]
       end
 
-      def mongo_opts(extracted_params)
-        params_with_extra_fields = extracted_params.collect(&:opts).select {|e| e.has_key? :field}
+      def mongo_opts(extracted_operators)
+        params_with_extra_fields = extracted_operators.collect(&:opts).select {|e| e.has_key? :field}
         extra_fields = params_with_extra_fields.map {|e| e[:field]}
         fields = self.class.field_list + extra_fields
         { :limit => items_per_page, :skip => skip, :fields => fields }
+      end
+
+      def extracted_param_names(extracted_operators)
+        extracted_operators.map {|e| e.opts[:param_name] }
       end
     end
   end
