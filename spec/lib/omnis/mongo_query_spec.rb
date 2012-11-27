@@ -87,9 +87,64 @@ describe Omnis::MongoQuery do
       t = TestPageDefaultQuery.new({})
       t.to_mongo.opts.should == { :limit => 20, :skip => 0, :fields => []}
     end
+
     it "page defaults and page given" do
       t = TestPageDefaultQuery.new({"page" => 2})
       t.to_mongo.opts.should == { :limit => 20, :skip => 40, :fields => []}
+    end
+
+    it "works with a custom paging param" do
+      class TestPageCustomPagingParamQuery
+        include Omnis::MongoQuery
+        page :fancy_pants, :items_per_page => 20
+      end
+
+      m = TestPageCustomPagingParamQuery.new("fancy_pants" => 2).to_mongo
+      m.opts.should == { :limit => 20, :skip => 40, :fields => []}
+    end
+  end
+
+  context 'sorting' do
+    class TestSortQuery
+      include Omnis::MongoQuery
+      param :ref_anixe, Equals
+      param :name,      Equals
+      sort :sort, :default => [:ref_anixe, :asc]
+    end
+
+    it 'default sort order' do
+      m = TestSortQuery.new({}).to_mongo
+      m.opts[:sort].should == [:ref_anixe, :asc]
+    end
+
+    it 'ascending by default' do
+      m = TestSortQuery.new("sort" => "name").to_mongo
+      m.opts[:sort].should == ['name', :asc]
+    end
+
+    it 'ascending for invalid sort order' do
+      m = TestSortQuery.new("sort" => "name,kupa").to_mongo
+      m.opts[:sort].should == ['name', :asc]
+    end
+
+    it 'ascending' do
+      m = TestSortQuery.new("sort" => "name,asc").to_mongo
+      m.opts[:sort].should == ['name', :asc]
+    end
+
+    it 'descending' do
+      m = TestSortQuery.new("sort" => "name,desc").to_mongo
+      m.opts[:sort].should == ['name', :desc]
+    end
+
+    it 'works with a custom sorting param' do
+      class TestSortCustomQuery
+        include Omnis::MongoQuery
+        param :name,      Equals
+        sort :fancy_pants, :default => [:ref_anixe, :asc]
+      end
+      m = TestSortCustomQuery.new("fancy_pants" => "name,desc").to_mongo
+      m.opts[:sort].should == ['name', :desc]
     end
   end
 

@@ -21,7 +21,7 @@ module Omnis
       def extract(params)
         value = @extractor.(params) if params.keys.include? name    # only run extractor if the param was in the request (params)
         value ||= default_value                                     # if there is a default, apply it
-        return value if extracted_result_is_an_operator? value
+        return value if is_operator? value
         return @operator.new(@name, value, @opts) unless value.nil?
       end
 
@@ -32,7 +32,7 @@ module Omnis
       end
 
       private
-      def extracted_result_is_an_operator?(value)
+      def is_operator?(value)
         value.is_a? Omnis::Operators::NullOperator
       end
     end
