@@ -1,4 +1,5 @@
 require 'ostruct'
+require 'monadic'
 
 module Omnis
   module MongoQuery
@@ -102,12 +103,31 @@ module Omnis
       end
 
       def sort_opts
-        sort_field, sort_order = (@input_params[sort_param_name] || '').split ','
-        sort_field ||= sort_default_field
+        sort_args = (@input_params[sort_param_name] || '').split ','
+
+        sort_order = sort_args[1]
         sort_order ||= sort_default_order
         sort_order = sort_order.to_sym
         sort_order = :asc unless [:asc, :desc].include? sort_order
-        @sort_opts = [sort_field, sort_order]
+
+        @sort_opts = [sort_field(sort_args), sort_order]
+      end
+
+      def sort_field(sort_args)
+        sort_field   = sort_args[0]
+        sort_field ||= sort_default_field
+        return nil unless sort_field
+
+        custom_sort_field = get_custom_sort_field(sort_field)
+
+        custom_sort_field ? custom_sort_field : sort_field
+      end
+
+      def get_custom_sort_field(sort_field)
+        sort_field_param = self.class.params[sort_field.to_sym]
+        if sort_field_param && sort_field_param.opts.has_key?(:field)
+          sort_field   = sort_field_param.opts[:field]
+        end
       end
 
       def extracted_param_names(extracted_operators)

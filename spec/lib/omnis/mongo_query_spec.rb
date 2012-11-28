@@ -107,8 +107,9 @@ describe Omnis::MongoQuery do
   context 'sorting' do
     class TestSortQuery
       include Omnis::MongoQuery
-      param :ref_anixe, Equals
-      param :name,      Equals
+      param :ref_provider,  Equals, :field => 'services.ref_provider'
+      param :ref_anixe,     Equals
+      param :name,          Equals
       sort :sort, :default => [:ref_anixe, :asc]
     end
 
@@ -135,6 +136,11 @@ describe Omnis::MongoQuery do
     it 'descending' do
       m = TestSortQuery.new("sort" => "name,desc").to_mongo
       m.opts[:sort].should == ['name', :desc]
+    end
+
+    it 'uses the supplied optional field for sorting' do
+      m = TestSortQuery.new("sort" => "ref_provider").to_mongo
+      m.opts[:sort].should == ['services.ref_provider', :asc]
     end
 
     it 'works with a custom sorting param' do
