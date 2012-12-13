@@ -65,6 +65,10 @@ module Omnis
     end
 
     module InstanceMethods
+      def columns
+        self.class.properties.keys
+      end
+
       def property_value(property, source)
         raw_value = property.extract(source)
         raw_value = property.default if property.default && (raw_value == Nothing || raw_value.nil?)

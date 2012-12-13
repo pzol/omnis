@@ -37,6 +37,11 @@ describe Omnis::Transformer do
     t.transform(doc).should == { :ref => "1abc" }
   end
 
+  it "allows to get a list of columns (property names)" do
+    t = TestTransformer.new
+    t.columns.should == [:ref, :date_from, :date_to, :agency]
+  end
+
   it "uses a #to_object method if provided to convert the resulting Hash into an Object" do
     class TestTransformerWithToObject
       include Omnis::Transformer
