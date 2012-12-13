@@ -46,6 +46,10 @@ module Omnis
                          :param_names => extracted_param_names(extracted_operators)})
       end
 
+      def items_per_page
+        self.class.items_per_page || 20
+      end
+
       private
       def page
         return 0 unless @input_params.has_key? page_param_name
@@ -62,9 +66,6 @@ module Omnis
         self.class.page_param_name || :page
       end
 
-      def items_per_page
-        self.class.items_per_page || 20
-      end
 
       def sort_param_name
         self.class.sort_param_name

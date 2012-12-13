@@ -102,6 +102,11 @@ describe Omnis::MongoQuery do
       m = TestPageCustomPagingParamQuery.new("fancy_pants" => 2).to_mongo
       m.opts.should == { :limit => 20, :skip => 40, :fields => []}
     end
+
+    it "allows to get items_per_page" do
+      t = TestPageDefaultQuery.new({})
+      t.items_per_page.should == 20
+    end
   end
 
   context 'sorting' do
