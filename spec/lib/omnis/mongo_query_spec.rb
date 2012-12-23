@@ -50,8 +50,9 @@ describe Omnis::MongoQuery do
 
       fields %w[ref_anixe status]
       # if this param is in the query, fetch the field "ref_customer"
-      param :ref_customer, Matches, :field => 'ref_customer'
-      param(:date_booked,  Between, :field => 'date_booked') {|src| Between.new(:date_booked, Time.at(0)..Time.at(1), :field => 'date_booked') }
+      param :ref_customer, Matches,  :field => 'ref_customer'
+      param(:date_booked,  Between,  :field => 'date_booked') {|src| Between.new(:date_booked, Time.at(0)..Time.at(1), :field => 'date_booked') }
+      param :extra, Equals,          :field => [:one, :two]
     end
 
     it 'extra field not requested when param not present' do
@@ -64,6 +65,11 @@ describe Omnis::MongoQuery do
       m = TestFieldsQuery.new({"ref_customer" => "123"}).to_mongo
       m.selector.should == {:ref_customer => /123/i}
       m.opts.should == { :limit => 20, :skip => 0, :fields => ['ref_anixe', 'status', 'ref_customer']}
+    end
+
+    it 'extra fields (many) are requested when param is in request' do
+      m = TestFieldsQuery.new({'extra' => 'value'}).to_mongo
+      m.opts[:fields].should include(:one, :two)
     end
 
     it 'works with lambdas, but the lambda must provide the opts!' do

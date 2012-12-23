@@ -95,8 +95,8 @@ module Omnis
       def mongo_opts(extracted_operators)
         {}.tap do |opts|
           params_with_extra_fields = extracted_operators.collect(&:opts).select {|e| e.has_key? :field}
-          extra_fields = params_with_extra_fields.map {|e| e[:field]}
-          opts[:fields] = self.class.field_list + extra_fields
+          extra_fields  = params_with_extra_fields.map {|e| e[:field]}
+          opts[:fields] = self.class.field_list + extra_fields.flatten
           opts[:limit]  = items_per_page
           opts[:skip]   = skip
           opts[:sort]   = sort_opts if sort_opts.all?
