@@ -26,18 +26,30 @@ module Omnis
     Any = NullOperator
 
     class Matches < NullOperator
+      def mongo_value
+        /#{value}/i
+      end
     end
 
     class Equals < NullOperator
+      def mongo_value
+        value
+      end
     end
 
     class Gte < NullOperator
     end
 
     class Between < NullOperator
+      def mongo_value
+        { :'$gte' => value.begin, :'$lt' => value.end }
+      end
     end
 
     class BeginsWith < NullOperator
+      def mongo_value
+        /^#{value}/i
+      end
     end
   end
 end

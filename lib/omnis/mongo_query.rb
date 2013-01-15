@@ -80,12 +80,7 @@ module Omnis
       end
 
       def mongo_operator(operator)
-        case operator
-        when Equals;      operator.value
-        when Matches;     /#{operator.value}/i
-        when BeginsWith;  /^#{operator.value}/i
-        when Between;     { :'$gte' => operator.value.begin, :'$lt' => operator.value.end}
-        end
+        operator.mongo_value
       end
 
       def mongo_selector(extracted_operators)
