@@ -14,6 +14,13 @@ describe Omnis::Query do
   class TestBookingParams
     include Omnis::Query
 
+    class TimeOfDay < Between
+      def self.parse_value(value)
+        time = Time.parse(value)
+        time.getlocal.beginning_of_day..time.getlocal.end_of_day
+      end
+    end
+
     def self.parse_date(params, name)
       param = params[name]
       return nil if param.nil?
@@ -24,6 +31,7 @@ describe Omnis::Query do
     param :ref_anixe, Matches
     param :passenger, Equals
     param(:date, Between) {|params| parse_date(params, :date) }
+    param :other_date, TimeOfDay
   end
 
   it "allows to fetch a single param" do
@@ -47,6 +55,14 @@ describe Omnis::Query do
     value.begin.should be_eql Time.local(2012, 10, 02, 0, 0, 0)
     value.end.should == Time.local(2012, 10, 02, 23, 59, 59, 999999.999)
   end
+
+  it "allows subclassing operators" do
+    t = TestBookingParams.new({"other_date" => "2012-10-02"})
+    value = t.fetch(:other_date).value
+    value.begin.should be_eql Time.local(2012, 10, 02, 0, 0, 0)
+    value.end.should == Time.local(2012, 10, 02, 23, 59, 59, 999999.999)
+  end
+
 
   it "returns default values even if not in the params" do
     class TestDefaultParams
