@@ -3,7 +3,8 @@ module Omnis
     class NullOperator
       attr_reader :key, :value, :opts
       def initialize(key, value, opts={})
-        @key, @value, @opts = key, value, opts
+        @key, @opts = key, opts
+        @value = self.class.parse_value(value)
       end
 
       def ==(other)
@@ -15,6 +16,10 @@ module Omnis
       def to_s
         klas = self.class.to_s.downcase.split('::')[-1]
         "#{@key.to_s} #{klas} #{@value}"
+      end
+
+      def self.parse_value(value)
+        value
       end
     end
 

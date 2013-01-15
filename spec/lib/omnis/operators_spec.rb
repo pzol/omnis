@@ -20,4 +20,17 @@ describe Omnis::Operators do
     expect(o.value).to eq(:value)
     expect(o.opts).to  eq({:k => 'v'})
   end
+
+  describe '::parse_value' do
+    class IntegerOperatorTest < Omnis::Operators::Equals
+      def self.parse_value(value)
+        Integer(value)
+      end
+    end
+
+    it 'supports custom value parsing' do
+      age = IntegerOperatorTest.new(:age, '10')
+      age.value.should == 10
+    end
+  end
 end
